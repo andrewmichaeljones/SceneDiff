@@ -99,10 +99,8 @@ public class SceneDifferEditorWindow : EditorWindow
         {
             GUILayout.Space(20);
             GUILayout.Label("Select scenes to compare", EditorStyles.boldLabel);
-            //GUILayout.BeginHorizontal();
             _selectedSceneIndex1 = EditorGUILayout.Popup(_selectedSceneIndex1, _sceneNames);
-            _selectedSceneIndex2 = EditorGUILayout.Popup(_selectedSceneIndex2, _sceneNames);   
-            //GUILayout.EndHorizontal();
+            _selectedSceneIndex2 = EditorGUILayout.Popup(_selectedSceneIndex2, _sceneNames);
         }
 
         GUILayout.Space(20);
@@ -116,11 +114,11 @@ public class SceneDifferEditorWindow : EditorWindow
         _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, GUILayout.Width(position.width), GUILayout.Height(position.height));
         _textBoxContent = GUILayout.TextArea(_textBoxContent, _textBoxStyle);
         GUILayout.EndScrollView();
-
+        
+        // TODO: Make the text area rendering more efficient for large amounts of text
         if (_results != null)
         {
             var sb = new StringBuilder();
-            
             foreach (var result in _results)
             {
                 var resultString = result.ToFormatString();
@@ -138,6 +136,7 @@ public class SceneDifferEditorWindow : EditorWindow
             }
 
             _textBoxContent = sb.ToString();
+            _results = null;
         }
     }
 }
