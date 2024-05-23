@@ -21,6 +21,8 @@ public class SceneDifferEditorWindow : EditorWindow
 
     private string[] _sceneCapturePaths;
 
+    private string _sceneCaptureOutputDirectory;
+
     [MenuItem("Tools/SceneDiff")]
     public static void ShowWindow()
     {
@@ -29,6 +31,8 @@ public class SceneDifferEditorWindow : EditorWindow
 
     private void OnEnable()
     {
+        _sceneCaptureOutputDirectory = Path.Combine(Application.dataPath, "..", "SceneCaptures");
+        
         _textBoxStyle = new GUIStyle(EditorStyles.textArea)
         {
             font = Font.CreateDynamicFontFromOSFont("Courier New", 16),
@@ -40,10 +44,9 @@ public class SceneDifferEditorWindow : EditorWindow
 
     private void LoadSceneCaptures()
     {
-        var directory = Path.Combine(Application.dataPath, "..", "SceneCaptures");
-        if (Directory.Exists(directory))
+        if (Directory.Exists(_sceneCaptureOutputDirectory))
         {
-            _sceneCapturePaths = Directory.GetFiles(directory);
+            _sceneCapturePaths = Directory.GetFiles(_sceneCaptureOutputDirectory);
             _sceneNames = new string[_sceneCapturePaths.Length];
             for (int i = 0; i < _sceneCapturePaths.Length; i++)
             {
@@ -52,7 +55,7 @@ public class SceneDifferEditorWindow : EditorWindow
         }
         else
         {
-            Directory.CreateDirectory(directory);
+            Directory.CreateDirectory(_sceneCaptureOutputDirectory);
         }
     }
    
@@ -68,8 +71,21 @@ public class SceneDifferEditorWindow : EditorWindow
                 sceneContents.AddRange(traverser.Traverse(go.transform));
             }
         
-            var path = Path.Combine(Application.dataPath, "..", "SceneCaptures", $"Scene-{SceneManager.GetActiveScene().name}-{DateTime.Now.ToString("yy-MM-dd-HH-mm-ss")}.snapshot");
+            var path = Path.Combine(_sceneCaptureOutputDirectory, $"Scene-{SceneManager.GetActiveScene().name}-{DateTime.Now.ToString("yy-MM-dd-HH-mm-ss")}.snapshot");
             File.WriteAllLines(path, sceneContents);
+            LoadSceneCaptures();
+        }
+        
+        if (GUILayout.Button("Clear snapshots"))
+        {
+            var directory = new DirectoryInfo(_sceneCaptureOutputDirectory);
+            foreach (var file in directory.GetFiles())
+            {
+                file.Delete(); 
+            }
+
+            _results = null;
+            _textBoxContent = "";
             LoadSceneCaptures();
         }
 
@@ -83,8 +99,10 @@ public class SceneDifferEditorWindow : EditorWindow
         {
             GUILayout.Space(20);
             GUILayout.Label("Select scenes to compare", EditorStyles.boldLabel);
+            //GUILayout.BeginHorizontal();
             _selectedSceneIndex1 = EditorGUILayout.Popup(_selectedSceneIndex1, _sceneNames);
             _selectedSceneIndex2 = EditorGUILayout.Popup(_selectedSceneIndex2, _sceneNames);   
+            //GUILayout.EndHorizontal();
         }
 
         GUILayout.Space(20);
