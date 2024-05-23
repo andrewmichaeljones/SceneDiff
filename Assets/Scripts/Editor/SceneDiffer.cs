@@ -1,29 +1,16 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Text;
 using UnityEngine;
 using UnityEditor;
 using NetDiff;
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
-using UnityEngine.Windows;
 
 public class SceneDifferEditorWindow : EditorWindow
 {
-    private string[] _scenePaths;
-    private string[] _sceneNames;
-    private int _selectedSceneIndex;
-    
-    private Vector2 scrollPosition;
-
-    private IEnumerable<DiffResult<string>> results;
-    private GUIStyle style;
-    
-    private float _splitPosition = 200f;
-    private bool _isResizing = false;
-    
+    private IEnumerable<DiffResult<string>> _results;
+    private Vector2 _scrollPosition;
+    private GUIStyle _style;
     private string textBoxContent = "Start by generating a diff...";
     private GUIStyle textBoxStyle;
     
@@ -65,21 +52,21 @@ public class SceneDifferEditorWindow : EditorWindow
                 sceneBContents.AddRange(traverser.Traverse(go.transform));
             }
             
-            results = DiffUtil.Diff(sceneAContents, sceneBContents);
+            _results = DiffUtil.Diff(sceneAContents, sceneBContents);
             
             System.IO.File.WriteAllLines(@"C:\Users\AJ107346\Development\Games\Milan-Land-Template\Logs\sceneA.txt", sceneAContents);
             System.IO.File.WriteAllLines(@"C:\Users\AJ107346\Development\Games\Milan-Land-Template\Logs\sceneB.txt", sceneBContents);
         }
         
-        scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Width(position.width), GUILayout.Height(position.height));
+        _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, GUILayout.Width(position.width), GUILayout.Height(position.height));
         textBoxContent = GUILayout.TextArea(textBoxContent, textBoxStyle);
         GUILayout.EndScrollView();
 
-        if (results != null)
+        if (_results != null)
         {
             var sb = new StringBuilder();
             
-            foreach (var result in results)
+            foreach (var result in _results)
             {
                 var resultString = result.ToFormatString();
                 
@@ -96,49 +83,6 @@ public class SceneDifferEditorWindow : EditorWindow
             }
 
             textBoxContent = sb.ToString();
-        }
-    }
-}
-
-public class GameObjectHierarchyTraverser
-{
-    public List<string> Traverse(Transform transform)
-    {
-        var contents = new List<string>();
-        TraverseAndPrintNames(transform, 0, contents);
-        return contents;
-    }
-
-    private void TraverseAndPrintNames(Transform transform, int depth, List<string> contents)
-    {
-        var indentation = new string('\t', depth);
-        
-        // Gameobject name
-        contents.Add(indentation + transform.gameObject.name);
-        var components = transform.GetComponents<Component>();
-
-        foreach (var component in components)
-        {
-            contents.Add(indentation + component.GetType());
-
-            foreach (var property in component.GetType().GetProperties())
-            {
-                try
-                {
-                    // Property name and value
-                    var objValue = property.GetValue(component);
-                    contents.Add(indentation + $"{property} {objValue}");
-                }
-                catch (Exception e)
-                {
-                    // Ignore because this will fail on rigidbody which is deprecated...
-                }
-            }
-        }
-
-        foreach (Transform child in transform)
-        {
-            TraverseAndPrintNames(child, depth + 1, contents);
         }
     }
 }
