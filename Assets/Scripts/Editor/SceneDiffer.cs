@@ -70,8 +70,10 @@ public class SceneDifferEditorWindow : EditorWindow
             {
                 sceneContents.AddRange(traverser.Traverse(go.transform));
             }
-        
-            var path = Path.Combine(_sceneCaptureOutputDirectory, $"Scene-{SceneManager.GetActiveScene().name}-{DateTime.Now.ToString("yy-MM-dd-HH-mm-ss")}.snapshot");
+
+            var date = DateTime.Now.ToString("yy-MM-dd-HH-mm-ss");
+            var filename = $"Scene-{SceneManager.GetActiveScene().name}-{date}.snapshot";
+            var path = Path.Combine(_sceneCaptureOutputDirectory, filename);
             File.WriteAllLines(path, sceneContents);
             LoadSceneCaptures();
         }
@@ -112,6 +114,11 @@ public class SceneDifferEditorWindow : EditorWindow
         }
         
         _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, GUILayout.Width(position.width), GUILayout.Height(position.height));
+        
+        // Ensure the font is not null, this appears to be set to null when loading a scene
+        if (_textBoxStyle.font == null)
+            _textBoxStyle.font = Font.CreateDynamicFontFromOSFont("Courier New", 16);
+        
         _textBoxContent = GUILayout.TextArea(_textBoxContent, _textBoxStyle);
         GUILayout.EndScrollView();
         

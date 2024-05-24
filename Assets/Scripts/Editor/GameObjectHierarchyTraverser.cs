@@ -13,21 +13,21 @@ public class GameObjectHierarchyTraverser
 
     private void TraverseAndPrintNames(Transform transform, int depth, List<string> contents)
     {
-        var indentation = new string('\t', depth);
+        var indentation = new string(' ', depth * 4);
         
-        // Gameobject name
         contents.Add(indentation + transform.gameObject.name);
         var components = transform.GetComponents<Component>();
 
         foreach (var component in components)
         {
             contents.Add(indentation + component.GetType());
-
+            
             foreach (var property in component.GetType().GetProperties())
             {
                 try
                 {
-                    // Property name and value
+                    // TODO: This calls the getter on the property which can have some odd side effects
+                    // especially if the getter is doing more than just returning the value!
                     var objValue = property.GetValue(component);
                     contents.Add(indentation + $"{property} {objValue}");
                 }
